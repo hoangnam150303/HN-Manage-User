@@ -1,5 +1,4 @@
 const userList = document.querySelector(".userInfo");
-let ouput = " ";
 const url = "https://67176b46b910c6a6e0280c7e.mockapi.io/user/";
 let isEditMode = false;
 let currentEditingUserId = null;
@@ -31,6 +30,7 @@ var newMemberAddBtn = document.querySelector(".addMemberBtn"),
 
 let isEdit = false;
 let editId = null;
+let currentPage = 1;
 
 var arrayLength = 0;
 var tableSize = 10;
@@ -71,133 +71,264 @@ uploadimg.onchange = function () {
   }
 };
 
-function preLoadCalculations() {
-  array = getData;
-  arrayLength = array.length;
-  maxIndex = arrayLength / tableSize;
+// function preLoadCalculations() {
+//   array = getData;
+//   arrayLength = array.length;
+//   maxIndex = arrayLength / tableSize;
 
-  if (arrayLength % tableSize > 0) {
-    maxIndex++;
-  }
+//   if (arrayLength % tableSize > 0) {
+//     maxIndex++;
+//   }
+// }
+function fetchData(page) {
+  const limit = tableSize;
+  fetch(`${url}?page=${page}&limit=${limit}`)
+    .then((res) => res.json())
+    .then((data) => {
+      renderUser(data);
+      displayIndexBtn(page);
+    });
+}
+// function displayIndexBtn() {
+//   preLoadCalculations();
+
+//   const pagination = document.querySelector(".pagination");
+
+//   pagination.innerHTML = "";
+
+//   pagination.innerHTML =
+//     '<button onclick="prev()" class="prev">Previous</button>';
+
+//   for (let i = 1; i <= maxIndex; i++) {
+//     pagination.innerHTML +=
+//       '<button onclick= "paginationBtn(' +
+//       i +
+//       ')" index="' +
+//       i +
+//       '">' +
+//       i +
+//       "</button>";
+//   }
+
+//   pagination.innerHTML += '<button onclick="next()" class="next">Next</button>';
+
+//   highlightIndexBtn();
+// }
+
+function displayIndexBtn(page) {
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      const totalEntries = data.length;
+      const maxIndex = Math.ceil(totalEntries / tableSize);
+      const pagination = document.querySelector(".pagination");
+      pagination.innerHTML = "";
+
+      pagination.innerHTML =
+        '<button onclick="prev()" class="prev">Previous</button>';
+
+      for (let i = 1; i <= maxIndex; i++) {
+        pagination.innerHTML +=
+          '<button onclick="paginationBtn(' +
+          i +
+          ')" index="' +
+          i +
+          '">' +
+          i +
+          "</button>";
+      }
+
+      pagination.innerHTML +=
+        '<button onclick="next()" class="next">Next</button>';
+
+      highlightIndexBtn(page, maxIndex);
+    });
 }
 
-function displayIndexBtn() {
-  preLoadCalculations();
+// function highlightIndexBtn() {
+//   startIndex = (currentIndex - 1) * tableSize + 1;
+//   endIndex = startIndex + tableSize - 1;
 
-  const pagination = document.querySelector(".pagination");
+//   if (endIndex > arrayLength) {
+//     endIndex = arrayLength;
+//   }
 
-  pagination.innerHTML = "";
+//   if (maxIndex >= 2) {
+//     var nextBtn = document.querySelector(".next");
+//     nextBtn.classList.add("act");
+//   }
 
-  pagination.innerHTML =
-    '<button onclick="prev()" class="prev">Previous</button>';
+//   entries.textContent = `Showing ${startIndex} to ${endIndex} of ${arrayLength} entries`;
 
-  for (let i = 1; i <= maxIndex; i++) {
-    pagination.innerHTML +=
-      '<button onclick= "paginationBtn(' +
-      i +
-      ')" index="' +
-      i +
-      '">' +
-      i +
-      "</button>";
-  }
+//   var paginationBtns = document.querySelectorAll(".pagination button");
+//   paginationBtns.forEach((btn) => {
+//     btn.classList.remove("active");
+//     if (btn.getAttribute("index") === currentIndex.toString()) {
+//       btn.classList.add("active");
+//     }
+//   });
+// }
 
-  pagination.innerHTML += '<button onclick="next()" class="next">Next</button>';
+// tabSize.addEventListener("change", () => {
+//   var selectedValue = parseInt(tabSize.value);
+//   tableSize = selectedValue;
+//   currentIndex = 1;
+//   startIndex = 1;
+//   displayIndexBtn();
+// });
 
-  highlightIndexBtn();
-}
-
-function highlightIndexBtn() {
-  startIndex = (currentIndex - 1) * tableSize + 1;
-  endIndex = startIndex + tableSize - 1;
-
-  if (endIndex > arrayLength) {
-    endIndex = arrayLength;
-  }
-
-  if (maxIndex >= 2) {
-    var nextBtn = document.querySelector(".next");
-    nextBtn.classList.add("act");
-  }
-
-  entries.textContent = `Showing ${startIndex} to ${endIndex} of ${arrayLength} entries`;
+function highlightIndexBtn(page, maxIndex) {
+  entries.textContent = `Showing entries for page ${page}`;
 
   var paginationBtns = document.querySelectorAll(".pagination button");
   paginationBtns.forEach((btn) => {
     btn.classList.remove("active");
-    if (btn.getAttribute("index") === currentIndex.toString()) {
+    if (btn.getAttribute("index") === page.toString()) {
       btn.classList.add("active");
     }
   });
 }
+// function paginationBtn(i) {
+//   currentIndex = i;
 
-tabSize.addEventListener("change", () => {
-  var selectedValue = parseInt(tabSize.value);
-  tableSize = selectedValue;
-  currentIndex = 1;
-  startIndex = 1;
-  displayIndexBtn();
-});
+//   var prevBtn = document.querySelector(".prev");
+//   var nextBtn = document.querySelector(".next");
 
-function paginationBtn(i) {
-  currentIndex = i;
+//   highlightIndexBtn();
 
-  var prevBtn = document.querySelector(".prev");
-  var nextBtn = document.querySelector(".next");
+//   if (currentIndex > maxIndex - 1) {
+//     nextBtn.classList.remove("act");
+//   } else {
+//     nextBtn.classList.add("act");
+//   }
 
-  highlightIndexBtn();
+//   if (currentIndex > 1) {
+//     prevBtn.classList.add("act");
+//   }
 
-  if (currentIndex > maxIndex - 1) {
-    nextBtn.classList.remove("act");
-  } else {
-    nextBtn.classList.add("act");
-  }
+//   if (currentIndex < 2) {
+//     prevBtn.classList.remove("act");
+//   }
+// }
 
-  if (currentIndex > 1) {
-    prevBtn.classList.add("act");
-  }
+// function next() {
+//   var prevBtn = document.querySelector(".prev");
+//   var nextBtn = document.querySelector(".next");
 
-  if (currentIndex < 2) {
-    prevBtn.classList.remove("act");
-  }
+//   if (currentIndex <= maxIndex - 1) {
+//     currentIndex++;
+//     prevBtn.classList.add("act");
+
+//     highlightIndexBtn();
+//   }
+
+//   if (currentIndex > maxIndex - 1) {
+//     nextBtn.classList.remove("act");
+//   }
+// }
+
+// function prev() {
+//   var prevBtn = document.querySelector(".prev");
+
+//   if (currentIndex > 1) {
+//     currentIndex--;
+//     prevBtn.classList.add("act");
+//     highlightIndexBtn();
+//   }
+
+//   if (currentIndex < 2) {
+//     prevBtn.classList.remove("act");
+//   }
+// }
+
+//Function display user
+// Method: GET
+
+function paginationBtn(page) {
+  currentPage = page;
+  fetchData(currentPage);
 }
 
 function next() {
-  var prevBtn = document.querySelector(".prev");
-  var nextBtn = document.querySelector(".next");
-
-  if (currentIndex <= maxIndex - 1) {
-    currentIndex++;
-    prevBtn.classList.add("act");
-
-    highlightIndexBtn();
-  }
-
-  if (currentIndex > maxIndex - 1) {
-    nextBtn.classList.remove("act");
+  if (currentPage < Math.ceil(originalData.length / tableSize)) {
+    currentPage++;
+    fetchData(currentPage);
   }
 }
 
 function prev() {
-  var prevBtn = document.querySelector(".prev");
-
-  if (currentIndex > 1) {
-    currentIndex--;
-    prevBtn.classList.add("act");
-    highlightIndexBtn();
-  }
-
-  if (currentIndex < 2) {
-    prevBtn.classList.remove("act");
+  if (currentPage > 1) {
+    currentPage--;
+    fetchData(currentPage);
   }
 }
 
-//Function display user
-// Method: GET
+// Initial data fetch
+fetchData(currentPage);
+
+// const renderUser = (users) => {
+//   let ouput = " ";
+//   users.forEach((user) => {
+//     ouput += `
+//          <tr data-id = ${user.id}>
+//          <td><img src="${user.Avatar}" alt="" width="40" height="40"></td>
+//          <td>${user.FirstName + " " + user.LastName}</td>
+//          <td>${user.Age}</td>
+//          <td>${user.City}</td>
+//          <td>${user.Position}</td>
+//          <td>${user.Salary}</td>
+//          <td>${user.StartDate}</td>
+//          <td>${user.Email}</td>
+//          <td>${user.Phone}</td>
+//          <td>${user.Email}</td>
+//          <td>
+//             <button><i class="fa-regular fa-eye" id="view-user"></i></button>
+//             <button><i class="fa-regular fa-pen-to-square" id="edit-user"></i></button>
+//             <button><i class="fa-regular fa-trash-can" id="delete-user"></i></button>
+//          </td>
+//      </tr>
+//           `;
+//   });
+//   userList.innerHTML = ouput;
+//   table.style.minWidth = "1400px";
+// };
+
+// fetch(url)
+//   .then((res) => res.json())
+//   .then((data) => {
+//     originalData = data;
+//     getData = originalData;
+//     renderUser(getData);
+//     displayIndexBtn();
+//   });
+
+// Search User
+// filterData.addEventListener("input", () => {
+//   const searchTerm = filterData.value.toLowerCase().trim();
+
+//   if (searchTerm !== "") {
+//     const filteredData = originalData.filter((item) => {
+//       const fullName = (item.FirstName + " " + item.LastName).toLowerCase();
+//       const city = item.City.toLowerCase();
+//       const position = item.Position.toLowerCase();
+
+//       return (
+//         fullName.includes(searchTerm) ||
+//         city.includes(searchTerm) ||
+//         position.includes(searchTerm)
+//       );
+//     });
+//     renderUser(filteredData);
+//   } else {
+//     renderUser(originalData);
+//   }
+// });
+
 const renderUser = (users) => {
+  let ouput = " ";
   users.forEach((user) => {
     ouput += `
-         <tr data-id = ${user.id}>
+         <tr data-id="${user.id}">
          <td><img src="${user.Avatar}" alt="" width="40" height="40"></td>
          <td>${user.FirstName + " " + user.LastName}</td>
          <td>${user.Age}</td>
@@ -207,7 +338,6 @@ const renderUser = (users) => {
          <td>${user.StartDate}</td>
          <td>${user.Email}</td>
          <td>${user.Phone}</td>
-         <td>${user.Email}</td>
          <td>
             <button><i class="fa-regular fa-eye" id="view-user"></i></button>
             <button><i class="fa-regular fa-pen-to-square" id="edit-user"></i></button>
@@ -217,11 +347,32 @@ const renderUser = (users) => {
           `;
   });
   userList.innerHTML = ouput;
+  table.style.minWidth = "1400px";
 };
 
-fetch(url)
-  .then((res) => res.json())
-  .then((data) => renderUser(data));
+filterData.addEventListener("input", () => {
+  const searchTerm = filterData.value.toLowerCase().trim();
+
+  fetch(url) // Get the original data again for search functionality
+    .then((res) => res.json())
+    .then((originalData) => {
+      if (searchTerm !== "") {
+        const filteredData = originalData.filter((item) => {
+          const fullName = (item.FirstName + " " + item.LastName).toLowerCase();
+          const city = item.City.toLowerCase();
+          const position = item.Position.toLowerCase();
+          return (
+            fullName.includes(searchTerm) ||
+            city.includes(searchTerm) ||
+            position.includes(searchTerm)
+          );
+        });
+        renderUser(filteredData);
+      } else {
+        renderUser(originalData);
+      }
+    });
+});
 
 // Function Create new User
 // Method: POST
@@ -240,6 +391,7 @@ userList.addEventListener("click", (e) => {
   let deleteButtonPressed = e.target.id == "delete-user";
   let editButtonPressed = e.target.id == "edit-user";
   let viewButtonPressed = e.target.id == "view-user";
+  const avatarSrc = document.getElementById("preview").src;
   editId = id;
   // Delete
   if (deleteButtonPressed) {
@@ -286,7 +438,7 @@ userList.addEventListener("click", (e) => {
     fetch(`${url}/${editId}`)
       .then((res) => res.json())
       .then((userData) => {
-        fName.value = userData.FirstName;
+        imgInput.src = userData.Avatar;
         lName.value = userData.LastName;
         age.value = userData.Age;
         city.value = userData.City;
@@ -313,7 +465,6 @@ submitBtn.addEventListener("click", (e) => {
   e.preventDefault();
   console.log("Submit button clicked, isEdit:", isEdit, "editId:", editId);
 
-  // Lấy nguồn ảnh từ phần tử preview
   const avatarSrc = document.getElementById("preview").src;
 
   if (isEdit) {
@@ -374,17 +525,3 @@ submitBtn.addEventListener("click", (e) => {
       });
   }
 });
-
-function previewImage(event) {
-  const file = event.target.files[0];
-  const preview = document.getElementById("preview");
-
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      preview.src = e.target.result; // Cập nhật nguồn ảnh cho phần tử img
-      preview.style.display = "block"; // Hiển thị ảnh
-    };
-    reader.readAsDataURL(file);
-  }
-}

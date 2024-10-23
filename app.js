@@ -135,8 +135,6 @@ function highlightIndexBtn(){
 }
 
 
-
-
 function showInfo(){
     document.querySelectorAll(".employeeDetails").forEach(info => info.remove())
 
