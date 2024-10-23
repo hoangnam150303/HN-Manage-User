@@ -50,7 +50,6 @@
       <table>
         <thead>
           <tr class="heading">
-            <th>SL No</th>
             <th>Picture</th>
             <th>Full Name</th>
             <th>Age</th>
@@ -164,7 +163,13 @@
           <form action="#" id="myForm">
             <div class="imgholder">
               <label for="uploadimg" class="upload">
-                <input type="file" name="" id="uploadimg" class="picture" />
+                <input
+                  type="file"
+                  name=""
+                  id="uploadimg"
+                  class="picture"
+                  onchange="previewImage(event)"
+                />
                 <i class="fa-solid fa-plus"></i>
               </label>
               <img
@@ -173,6 +178,7 @@
                 width="150"
                 height="150"
                 class="img"
+                id="preview"
               />
             </div>
 

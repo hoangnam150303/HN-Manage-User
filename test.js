@@ -1,6 +1,8 @@
 const userList = document.querySelector(".userInfo");
 let ouput = " ";
 const url = "https://67176b46b910c6a6e0280c7e.mockapi.io/user/";
+let isEditMode = false;
+let currentEditingUserId = null;
 var newMemberAddBtn = document.querySelector(".addMemberBtn"),
   darkBg = document.querySelector(".dark_bg"),
   popupForm = document.querySelector(".popup"),
@@ -26,6 +28,9 @@ var newMemberAddBtn = document.querySelector(".addMemberBtn"),
   (tabSize = document.getElementById("table_size")),
   (table = document.querySelector("table")),
   (filterData = document.getElementById("search"));
+
+let isEdit = false;
+let editId = null;
 
 var arrayLength = 0;
 var tableSize = 10;
@@ -193,8 +198,7 @@ const renderUser = (users) => {
   users.forEach((user) => {
     ouput += `
          <tr data-id = ${user.id}>
-         <td>${user.id}</td>
-         <td><img src="./img/pic1.png" alt="" width="40" height="40"></td>
+         <td><img src="${user.Avatar}" alt="" width="40" height="40"></td>
          <td>${user.FirstName + " " + user.LastName}</td>
          <td>${user.Age}</td>
          <td>${user.City}</td>
@@ -205,7 +209,7 @@ const renderUser = (users) => {
          <td>${user.Phone}</td>
          <td>${user.Email}</td>
          <td>
-            <button><i class="fa-regular fa-eye"></i></button>
+            <button><i class="fa-regular fa-eye" id="view-user"></i></button>
             <button><i class="fa-regular fa-pen-to-square" id="edit-user"></i></button>
             <button><i class="fa-regular fa-trash-can" id="delete-user"></i></button>
          </td>
@@ -223,113 +227,164 @@ fetch(url)
 // Method: POST
 form.addEventListener("submit", (e) => {
   e.preventDefault();
-  fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-type": "application/json",
-    },
-    body: JSON.stringify({
-      FirstName: fName.value,
-      LastName: lName.value,
-      Age: age.value,
-      City: city.value,
-      Position: position.value,
-      Salary: salary.value,
-      StartDate: sDate.value,
-      Email: email.value,
-      Phone: phone.value,
-    }),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      console.log(data);
-      const dataArr = [];
-      dataArr.push(data);
-      renderUser(dataArr);
-    });
   submitBtn.innerHTML = "Submit";
   modalTitle.innerHTML = "Fill the Form";
-  darkBg.classList.remove("active");
-  popupForm.classList.remove("active");
-  form.reset();
-
-  highlightIndexBtn();
-  displayIndexBtn();
-  var nextBtn = document.querySelector(".next");
-  var prevBtn = document.querySelector(".prev");
-  if (Math.floor(maxIndex) > currentIndex) {
-    nextBtn.classList.add("act");
-  } else {
-    nextBtn.classList.remove("act");
-  }
-
-  if (currentIndex > 1) {
-    prevBtn.classList.add("act");
-  }
 });
 
-// Function delete and edit user
-// METHOD: Delete
-
+// Function delete and edit and view user
+// METHOD: Delete, PATCH
 userList.addEventListener("click", (e) => {
   e.preventDefault();
   let trElement = e.target.closest("tr");
   let id = trElement ? trElement.dataset.id : null;
+  let deleteButtonPressed = e.target.id == "delete-user";
+  let editButtonPressed = e.target.id == "edit-user";
+  let viewButtonPressed = e.target.id == "view-user";
+  editId = id;
   // Delete
-  if (confirm("Are you sure want to delete")) {
-    fetch(`${url}/${id}`, {
-      method: "DELETE",
+  if (deleteButtonPressed) {
+    if (confirm("Are you sure want to delete")) {
+      fetch(`${url}/${id}`, {
+        method: "DELETE",
+      })
+        .then((res) => res.json())
+        .then(() => location.reload());
+    }
+  }
+
+  // Edit User
+  if (editButtonPressed) {
+    isEdit = true;
+    console.log("user id: ", editId);
+    fetch(`${url}/${editId}`)
+      .then((res) => res.json())
+      .then((userData) => {
+        imgInput.src = userData.Avatar;
+        fName.value = userData.FirstName;
+        lName.value = userData.LastName;
+        age.value = userData.Age;
+        city.value = userData.City;
+        position.value = userData.Position;
+        salary.value = userData.Salary;
+        sDate.value = userData.StartDate;
+        email.value = userData.Email;
+        phone.value = userData.Phone;
+
+        darkBg.classList.add("active");
+        popupForm.classList.add("active");
+        popupFooter.style.display = "block";
+        modalTitle.innerHTML = "Update the Form";
+        submitBtn.innerHTML = "Update";
+        formInputFields.forEach((input) => {
+          input.disabled = false;
+        });
+      });
+  }
+
+  // Read User
+  if (viewButtonPressed) {
+    fetch(`${url}/${editId}`)
+      .then((res) => res.json())
+      .then((userData) => {
+        fName.value = userData.FirstName;
+        lName.value = userData.LastName;
+        age.value = userData.Age;
+        city.value = userData.City;
+        position.value = userData.Position;
+        salary.value = userData.Salary;
+        sDate.value = userData.StartDate;
+        email.value = userData.Email;
+        phone.value = userData.Phone;
+
+        darkBg.classList.add("active");
+        popupForm.classList.add("active");
+        popupFooter.style.display = "none";
+        modalTitle.innerHTML = "Profile";
+        formInputFields.forEach((input) => {
+          input.disabled = true;
+        });
+      });
+  }
+  imgHolder.style.pointerEvents = "none";
+});
+
+// Button Submit || Button Update
+submitBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  console.log("Submit button clicked, isEdit:", isEdit, "editId:", editId);
+
+  // Lấy nguồn ảnh từ phần tử preview
+  const avatarSrc = document.getElementById("preview").src;
+
+  if (isEdit) {
+    fetch(`${url}/${editId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        Avatar: avatarSrc,
+        FirstName: fName.value,
+        LastName: lName.value,
+        Age: age.value,
+        City: city.value,
+        Position: position.value,
+        Salary: salary.value,
+        StartDate: sDate.value,
+        Email: email.value,
+        Phone: phone.value,
+      }),
     })
       .then((res) => res.json())
-      .then(() => location.reload());
-  }
-});
-
-// Function edit user
-// METHOD: PATCH
-
-userList.addEventListener("click", (e) => {
-  e.preventDefault();
-  let trElement = e.target.closest("tr");
-  let id = trElement ? trElement.dataset.id : null;
-  console.log(id);
-  fetch(`${url}/${id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      FirstName: fName.value,
-      LastName: lName.value,
-      Age: age.value,
-      City: city.value,
-      Position: position.value,
-      Salary: salary.value,
-      StartDate: sDate.value,
-      Email: email.value,
-      Phone: phone.value,
-    }),
-  })
-    .then((res) => res.json())
-    .then(() => location.reload());
-
-  submitBtn.innerHTML = "Submit";
-  modalTitle.innerHTML = "Fill the Form";
-  darkBg.classList.remove("active");
-  popupForm.classList.remove("active");
-  form.reset();
-
-  highlightIndexBtn();
-  displayIndexBtn();
-  var nextBtn = document.querySelector(".next");
-  var prevBtn = document.querySelector(".prev");
-  if (Math.floor(maxIndex) > currentIndex) {
-    nextBtn.classList.add("act");
+      .then(() => {
+        darkBg.classList.remove("active");
+        popupForm.classList.remove("active");
+        form.reset();
+        location.reload();
+      });
   } else {
-    nextBtn.classList.remove("act");
-  }
-
-  if (currentIndex > 1) {
-    prevBtn.classList.add("act");
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        Avatar: avatarSrc === undefined ? "./img/pic1.png" : avatarSrc,
+        FirstName: fName.value,
+        LastName: lName.value,
+        Age: age.value,
+        City: city.value,
+        Position: position.value,
+        Salary: salary.value,
+        StartDate: sDate.value,
+        Email: email.value,
+        Phone: phone.value,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        darkBg.classList.remove("active");
+        popupForm.classList.remove("active");
+        form.reset();
+        location.reload();
+      })
+      .catch((error) => {
+        console.error("Error creating user:", error); // Bắt lỗi nếu có
+      });
   }
 });
+
+function previewImage(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById("preview");
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      preview.src = e.target.result; // Cập nhật nguồn ảnh cho phần tử img
+      preview.style.display = "block"; // Hiển thị ảnh
+    };
+    reader.readAsDataURL(file);
+  }
+}
