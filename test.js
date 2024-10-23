@@ -1,7 +1,6 @@
 const userList = document.querySelector(".userInfo");
 const url = "https://67176b46b910c6a6e0280c7e.mockapi.io/user/";
-let isEditMode = false;
-let currentEditingUserId = null;
+
 var newMemberAddBtn = document.querySelector(".addMemberBtn"),
   darkBg = document.querySelector(".dark_bg"),
   popupForm = document.querySelector(".popup"),
@@ -31,6 +30,7 @@ var newMemberAddBtn = document.querySelector(".addMemberBtn"),
 let isEdit = false;
 let editId = null;
 let currentPage = 1;
+let filterArray = [];
 
 var arrayLength = 0;
 var tableSize = 10;
@@ -350,32 +350,41 @@ const renderUser = (users) => {
   table.style.minWidth = "1400px";
 };
 
+// Filter method
 filterData.addEventListener("input", () => {
   const searchTerm = filterData.value.toLowerCase().trim();
 
-  fetch(url) // Get the original data again for search functionality
-    .then((res) => res.json())
-    .then((originalData) => {
-      if (searchTerm !== "") {
-        const filteredData = originalData.filter((item) => {
-          const fullName = (item.FirstName + " " + item.LastName).toLowerCase();
-          const city = item.City.toLowerCase();
-          const position = item.Position.toLowerCase();
-          return (
-            fullName.includes(searchTerm) ||
-            city.includes(searchTerm) ||
-            position.includes(searchTerm)
-          );
-        });
+  if (searchTerm !== "") {
+    fetch(`${url}?search=${searchTerm}`)
+      .then((res) => res.json())
+      .then((filteredData) => {
         renderUser(filteredData);
-      } else {
+      })
+      .catch((error) => {
+        console.error("Error fetching filtered data:", error);
+      });
+  } else {
+    fetch(url)
+      .then((res) => res.json())
+      .then((originalData) => {
         renderUser(originalData);
-      }
-    });
+      })
+      .catch((error) => {
+        console.error("Error fetching original data:", error);
+      });
+  }
 });
 
+// tabSize.addEventListener("change", () => {
+//   var selectedValue = parseInt(tabSize.value);
+//   tableSize = selectedValue;
+//   currentIndex = 1;
+//   startIndex = 1;
+//   displayIndexBtn();
+// });
 // Function Create new User
 // Method: POST
+
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   submitBtn.innerHTML = "Submit";
@@ -391,7 +400,6 @@ userList.addEventListener("click", (e) => {
   let deleteButtonPressed = e.target.id == "delete-user";
   let editButtonPressed = e.target.id == "edit-user";
   let viewButtonPressed = e.target.id == "view-user";
-  const avatarSrc = document.getElementById("preview").src;
   editId = id;
   // Delete
   if (deleteButtonPressed) {
@@ -439,6 +447,7 @@ userList.addEventListener("click", (e) => {
       .then((res) => res.json())
       .then((userData) => {
         imgInput.src = userData.Avatar;
+        fName.value = userData.FirstName;
         lName.value = userData.LastName;
         age.value = userData.Age;
         city.value = userData.City;
@@ -525,3 +534,20 @@ submitBtn.addEventListener("click", (e) => {
       });
   }
 });
+
+function showEntries() {
+  const dropdown = document.getElementById("table_size");
+  dropdown.value = tableSize;
+
+  dropdown.addEventListener("change", function () {
+    tableSize = parseInt(this.value);
+    chiaBang();
+    paginationBtn(1);
+  });
+  chiaBang();
+}
+function chiaBang() {
+  arrayLength = filterArray.length;
+  maxIndex = Math.ceil(arrayLength / tableSize);
+  paginationBtn(1);
+}
