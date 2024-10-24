@@ -80,24 +80,41 @@ tabSize.addEventListener("change", () => {
   fetchData(currentIndex);
 });
 
-function fetchData(page) {
+function fetchData(page, searchTerm = "") {
   const limit = tableSize;
-  fetch(`${url}?page=${page}&limit=${limit}`)
+  let fetchUrl = `${url}?page=${page}&limit=${limit}`;
+  
+  // Thêm điều kiện nếu có từ khóa tìm kiếm thì append vào URL
+  if (searchTerm) {
+    fetchUrl = `${url}?search=${searchTerm}&page=${page}&limit=${limit}`;
+  }
+  
+  fetch(fetchUrl)
     .then((res) => res.json())
     .then((data) => {
       renderUser(data);
-      displayIndexBtn(page);
+      displayIndexBtn(page, searchTerm);
+    })
+    .catch((error) => {
+      console.error("Error fetching data:", error);
     });
 }
 
-function displayIndexBtn(page) {
-  fetch(url)
+function displayIndexBtn(page, searchTerm = "") {
+  let fetchUrl = `${url}?page=${page}`;
+  
+  // Nếu có searchTerm, gọi API với tham số search
+  if (searchTerm) {
+    fetchUrl = `${url}?search=${searchTerm}`;
+  }
+  
+  fetch(fetchUrl)
     .then((res) => res.json())
     .then((data) => {
       const totalEntries = data.length;
-      const maxIndex = Math.ceil(totalEntries / tableSize); // số trang tương ứng
+      const maxIndex = Math.ceil(totalEntries / tableSize);
       const pagination = document.querySelector(".pagination");
-      pagination.innerHTML = ""; // xóa các nút phân trang cũ
+      pagination.innerHTML = ""; // Xóa các nút phân trang cũ
 
       // Nút Previous
       pagination.innerHTML =
@@ -119,7 +136,10 @@ function displayIndexBtn(page) {
       pagination.innerHTML +=
         '<button onclick="next()" class="next">Next</button>';
 
-      highlightIndexBtn(page, maxIndex); // làm nổi bật nút phân trang hiện tại
+      highlightIndexBtn(page, maxIndex);
+    })
+    .catch((error) => {
+      console.error("Error fetching total entries for pagination:", error);
     });
 }
 
@@ -134,31 +154,30 @@ function highlightIndexBtn(page, maxIndex) {
     }
   });
 }
+
 function paginationBtn(page) {
+  const searchTerm = filterData.value.toLowerCase().trim(); // Giữ lại từ khóa tìm kiếm khi chuyển trang
   currentPage = page;
-  fetchData(currentPage);
+  fetchData(currentPage, searchTerm); // Thêm searchTerm khi gọi API
 }
 
 function next() {
+  const searchTerm = filterData.value.toLowerCase().trim();
+
   if (currentPage < Math.ceil(arrayLength / tableSize)) {
     currentPage++;
-    fetchData(currentPage);
+    fetchData(currentPage, searchTerm); // Gọi API với searchTerm
   }
 }
 
 function prev() {
+  const searchTerm = filterData.value.toLowerCase().trim();
+
   if (currentPage > 1) {
     currentPage--;
-    fetchData(currentPage);
+    fetchData(currentPage, searchTerm); // Gọi API với searchTerm
   }
 }
-
-// function prev() {
-//   if (currentPage > 1) {
-//     currentPage--;
-//     fetchData(currentPage);
-//   }
-// }
 
 // Initial data fetch
 fetchData(currentPage);
@@ -193,27 +212,61 @@ const renderUser = (users) => {
 // Filter method
 filterData.addEventListener("input", () => {
   const searchTerm = filterData.value.toLowerCase().trim();
-
-  if (searchTerm !== "") {
-    fetch(`${url}?search=${searchTerm}`)
-      .then((res) => res.json())
-      .then((filteredData) => {
-        renderUser(filteredData);
-      })
-      .catch((error) => {
-        console.error("Error fetching filtered data:", error);
-      });
-  } else {
-    fetch(url)
-      .then((res) => res.json())
-      .then((originalData) => {
-        renderUser(originalData);
-      })
-      .catch((error) => {
-        console.error("Error fetching original data:", error);
-      });
-  }
+  currentPage = 1; // Reset về trang đầu khi tìm kiếm mới
+  fetchData(currentPage, searchTerm); // Gọi API với từ khóa filter
 });
+
+function fetchFilteredData(page, searchTerm = "") {
+  const limit = tableSize;
+  // Gọi API với tham số searchTerm và pagination
+  fetch(`${url}?search=${searchTerm}&page=${page}&limit=${limit}`)
+    .then((res) => res.json())
+    .then((data) => {
+      renderUser(data);
+      displayIndexBtn(page, searchTerm); // Cập nhật nút phân trang dựa trên kết quả filter
+    })
+    .catch((error) => {
+      console.error("Error fetching filtered data:", error);
+    });
+}
+
+function updatePagination(searchTerm) {
+  // Fetch filtered data to calculate total entries
+  fetch(`${url}?search=${searchTerm}`)
+    .then((res) => res.json())
+    .then((data) => {
+      const totalEntries = data.length;
+      const maxIndex = Math.ceil(totalEntries / tableSize); // Calculate number of pages
+
+      const pagination = document.querySelector(".pagination");
+      pagination.innerHTML = ""; // Clear old pagination buttons
+
+      // Previous Button
+      pagination.innerHTML =
+        '<button onclick="prev()" class="prev">Previous</button>';
+
+      // Create pagination buttons based on filtered data
+      for (let i = 1; i <= maxIndex; i++) {
+        pagination.innerHTML +=
+          '<button onclick="paginationBtn(' +
+          i +
+          ')" index="' +
+          i +
+          '">' +
+          i +
+          "</button>";
+      }
+
+      // Next Button
+      pagination.innerHTML +=
+        '<button onclick="next()" class="next">Next</button>';
+
+      highlightIndexBtn(currentPage, maxIndex); // Highlight current page
+    })
+    .catch((error) => {
+      console.error("Error updating pagination:", error);
+    });
+}
 
 // Create user method
 form.addEventListener("submit", (e) => {
