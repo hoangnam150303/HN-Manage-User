@@ -71,6 +71,14 @@ uploadimg.onchange = function () {
   }
 };
 
+tabSize.addEventListener("change", () => {
+  var selectedValue = parseInt(tabSize.value);
+  tableSize = selectedValue;
+  currentIndex = 1;
+  startIndex = 1;
+  displayIndexBtn(currentPage);
+  fetchData(currentIndex);
+});
 
 function fetchData(page) {
   const limit = tableSize;
@@ -82,19 +90,20 @@ function fetchData(page) {
     });
 }
 
-
 function displayIndexBtn(page) {
   fetch(url)
     .then((res) => res.json())
     .then((data) => {
       const totalEntries = data.length;
-      const maxIndex = Math.ceil(totalEntries / tableSize);
+      const maxIndex = Math.ceil(totalEntries / tableSize); // số trang tương ứng
       const pagination = document.querySelector(".pagination");
-      pagination.innerHTML = "";
+      pagination.innerHTML = ""; // xóa các nút phân trang cũ
 
+      // Nút Previous
       pagination.innerHTML =
         '<button onclick="prev()" class="prev">Previous</button>';
 
+      // Tạo các nút phân trang dựa trên số lượng user và số trang
       for (let i = 1; i <= maxIndex; i++) {
         pagination.innerHTML +=
           '<button onclick="paginationBtn(' +
@@ -106,47 +115,16 @@ function displayIndexBtn(page) {
           "</button>";
       }
 
+      // Nút Next
       pagination.innerHTML +=
         '<button onclick="next()" class="next">Next</button>';
 
-      highlightIndexBtn(page, maxIndex);
+      highlightIndexBtn(page, maxIndex); // làm nổi bật nút phân trang hiện tại
     });
 }
 
-
-//   startIndex = (currentIndex - 1) * tableSize + 1;
-//   endIndex = startIndex + tableSize - 1;
-
-//   if (endIndex > arrayLength) {
-//     endIndex = arrayLength;
-//   }
-
-//   if (maxIndex >= 2) {
-//     var nextBtn = document.querySelector(".next");
-//     nextBtn.classList.add("act");
-//   }
-
-//   entries.textContent = `Showing ${startIndex} to ${endIndex} of ${arrayLength} entries`;
-
-//   var paginationBtns = document.querySelectorAll(".pagination button");
-//   paginationBtns.forEach((btn) => {
-//     btn.classList.remove("active");
-//     if (btn.getAttribute("index") === currentIndex.toString()) {
-//       btn.classList.add("active");
-//     }
-//   });
-// }
-
-// tabSize.addEventListener("change", () => {
-//   var selectedValue = parseInt(tabSize.value);
-//   tableSize = selectedValue;
-//   currentIndex = 1;
-//   startIndex = 1;
-//   displayIndexBtn();
-// });
-
 function highlightIndexBtn(page, maxIndex) {
-  entries.textContent = `Showing entries for page ${page}`;
+  entries.textContent = `Showing entries for page ${page} of ${maxIndex}`;
 
   var paginationBtns = document.querySelectorAll(".pagination button");
   paginationBtns.forEach((btn) => {
@@ -156,69 +134,13 @@ function highlightIndexBtn(page, maxIndex) {
     }
   });
 }
-
-//   currentIndex = i;
-
-//   var prevBtn = document.querySelector(".prev");
-//   var nextBtn = document.querySelector(".next");
-
-//   highlightIndexBtn();
-
-//   if (currentIndex > maxIndex - 1) {
-//     nextBtn.classList.remove("act");
-//   } else {
-//     nextBtn.classList.add("act");
-//   }
-
-//   if (currentIndex > 1) {
-//     prevBtn.classList.add("act");
-//   }
-
-//   if (currentIndex < 2) {
-//     prevBtn.classList.remove("act");
-//   }
-// }
-
-// function next() {
-//   var prevBtn = document.querySelector(".prev");
-//   var nextBtn = document.querySelector(".next");
-
-//   if (currentIndex <= maxIndex - 1) {
-//     currentIndex++;
-//     prevBtn.classList.add("act");
-
-//     highlightIndexBtn();
-//   }
-
-//   if (currentIndex > maxIndex - 1) {
-//     nextBtn.classList.remove("act");
-//   }
-// }
-
-// function prev() {
-//   var prevBtn = document.querySelector(".prev");
-
-//   if (currentIndex > 1) {
-//     currentIndex--;
-//     prevBtn.classList.add("act");
-//     highlightIndexBtn();
-//   }
-
-//   if (currentIndex < 2) {
-//     prevBtn.classList.remove("act");
-//   }
-// }
-
-//Function display user
-// Method: GET
-
 function paginationBtn(page) {
   currentPage = page;
   fetchData(currentPage);
 }
 
 function next() {
-  if (currentPage < Math.ceil(originalData.length / tableSize)) {
+  if (currentPage < Math.ceil(arrayLength / tableSize)) {
     currentPage++;
     fetchData(currentPage);
   }
@@ -231,9 +153,15 @@ function prev() {
   }
 }
 
+// function prev() {
+//   if (currentPage > 1) {
+//     currentPage--;
+//     fetchData(currentPage);
+//   }
+// }
+
 // Initial data fetch
 fetchData(currentPage);
-
 
 // Render user in table
 const renderUser = (users) => {
@@ -286,7 +214,6 @@ filterData.addEventListener("input", () => {
       });
   }
 });
-
 
 // Create user method
 form.addEventListener("submit", (e) => {
@@ -438,20 +365,3 @@ submitBtn.addEventListener("click", (e) => {
       });
   }
 });
-
-function showEntries() {
-  const dropdown = document.getElementById("table_size");
-  dropdown.value = tableSize;
-
-  dropdown.addEventListener("change", function () {
-    tableSize = parseInt(this.value);
-    chiaBang();
-    paginationBtn(1);
-  });
-  chiaBang();
-}
-function chiaBang() {
-  arrayLength = filterArray.length;
-  maxIndex = Math.ceil(arrayLength / tableSize);
-  paginationBtn(1);
-}
