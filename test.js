@@ -71,15 +71,7 @@ uploadimg.onchange = function () {
   }
 };
 
-// function preLoadCalculations() {
-//   array = getData;
-//   arrayLength = array.length;
-//   maxIndex = arrayLength / tableSize;
 
-//   if (arrayLength % tableSize > 0) {
-//     maxIndex++;
-//   }
-// }
 function fetchData(page) {
   const limit = tableSize;
   fetch(`${url}?page=${page}&limit=${limit}`)
@@ -89,31 +81,7 @@ function fetchData(page) {
       displayIndexBtn(page);
     });
 }
-// function displayIndexBtn() {
-//   preLoadCalculations();
 
-//   const pagination = document.querySelector(".pagination");
-
-//   pagination.innerHTML = "";
-
-//   pagination.innerHTML =
-//     '<button onclick="prev()" class="prev">Previous</button>';
-
-//   for (let i = 1; i <= maxIndex; i++) {
-//     pagination.innerHTML +=
-//       '<button onclick= "paginationBtn(' +
-//       i +
-//       ')" index="' +
-//       i +
-//       '">' +
-//       i +
-//       "</button>";
-//   }
-
-//   pagination.innerHTML += '<button onclick="next()" class="next">Next</button>';
-
-//   highlightIndexBtn();
-// }
 
 function displayIndexBtn(page) {
   fetch(url)
@@ -145,7 +113,7 @@ function displayIndexBtn(page) {
     });
 }
 
-// function highlightIndexBtn() {
+
 //   startIndex = (currentIndex - 1) * tableSize + 1;
 //   endIndex = startIndex + tableSize - 1;
 
@@ -188,7 +156,7 @@ function highlightIndexBtn(page, maxIndex) {
     }
   });
 }
-// function paginationBtn(i) {
+
 //   currentIndex = i;
 
 //   var prevBtn = document.querySelector(".prev");
@@ -266,64 +234,8 @@ function prev() {
 // Initial data fetch
 fetchData(currentPage);
 
-// const renderUser = (users) => {
-//   let ouput = " ";
-//   users.forEach((user) => {
-//     ouput += `
-//          <tr data-id = ${user.id}>
-//          <td><img src="${user.Avatar}" alt="" width="40" height="40"></td>
-//          <td>${user.FirstName + " " + user.LastName}</td>
-//          <td>${user.Age}</td>
-//          <td>${user.City}</td>
-//          <td>${user.Position}</td>
-//          <td>${user.Salary}</td>
-//          <td>${user.StartDate}</td>
-//          <td>${user.Email}</td>
-//          <td>${user.Phone}</td>
-//          <td>${user.Email}</td>
-//          <td>
-//             <button><i class="fa-regular fa-eye" id="view-user"></i></button>
-//             <button><i class="fa-regular fa-pen-to-square" id="edit-user"></i></button>
-//             <button><i class="fa-regular fa-trash-can" id="delete-user"></i></button>
-//          </td>
-//      </tr>
-//           `;
-//   });
-//   userList.innerHTML = ouput;
-//   table.style.minWidth = "1400px";
-// };
 
-// fetch(url)
-//   .then((res) => res.json())
-//   .then((data) => {
-//     originalData = data;
-//     getData = originalData;
-//     renderUser(getData);
-//     displayIndexBtn();
-//   });
-
-// Search User
-// filterData.addEventListener("input", () => {
-//   const searchTerm = filterData.value.toLowerCase().trim();
-
-//   if (searchTerm !== "") {
-//     const filteredData = originalData.filter((item) => {
-//       const fullName = (item.FirstName + " " + item.LastName).toLowerCase();
-//       const city = item.City.toLowerCase();
-//       const position = item.Position.toLowerCase();
-
-//       return (
-//         fullName.includes(searchTerm) ||
-//         city.includes(searchTerm) ||
-//         position.includes(searchTerm)
-//       );
-//     });
-//     renderUser(filteredData);
-//   } else {
-//     renderUser(originalData);
-//   }
-// });
-
+// Render user in table
 const renderUser = (users) => {
   let ouput = " ";
   users.forEach((user) => {
@@ -375,16 +287,8 @@ filterData.addEventListener("input", () => {
   }
 });
 
-// tabSize.addEventListener("change", () => {
-//   var selectedValue = parseInt(tabSize.value);
-//   tableSize = selectedValue;
-//   currentIndex = 1;
-//   startIndex = 1;
-//   displayIndexBtn();
-// });
-// Function Create new User
-// Method: POST
 
+// Create user method
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   submitBtn.innerHTML = "Submit";
